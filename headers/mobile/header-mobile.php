@@ -1,4 +1,4 @@
-<h2>This is Heading</h2>
+<?php echo do_shortcode('[star_gold_rate]'); ?>
 
 <div id="goal-header-mobile" class="header-mobile hidden-lg hidden-md clearfix">    
     <div class="container-fluid">
