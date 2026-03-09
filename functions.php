@@ -114,3 +114,31 @@ function child_serial_verification_search() {
         ));
     }
 }
+
+
+
+
+define('gold_api_key', 'QWOIJUPFGXI8MSHKQLZW205HKQLZW');
+
+
+function get_gold_price_pkr() {
+
+    $api_key = GOLD_API_KEY;
+
+    $url = "https://api.metals.dev/v1/latest?api_key={$api_key}&currency=PKR&unit=g";
+
+    $response = wp_remote_get($url, array(
+        'headers' => array(
+            'Accept' => 'application/json'
+        )
+    ));
+
+    if (is_wp_error($response)) {
+        return false;
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+
+    return $data;
+}
