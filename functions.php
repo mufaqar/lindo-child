@@ -118,27 +118,136 @@ function child_serial_verification_search() {
 
 
 
-define('gold_api_key', 'QWOIJUPFGXI8MSHKQLZW205HKQLZW');
+define('GOLD_API_KEY', 'QWOIJUPFGXI8MSHKQLZW205HKQLZW');
 
 
-function get_gold_price_pkr() {
 
-    $api_key = GOLD_API_KEY;
+if (!defined('ABSPATH')) {
+    exit;
+}
 
-    $url = "https://api.metals.dev/v1/latest?api_key={$api_key}&currency=PKR&unit=g";
+/*
+|--------------------------------------------------------------------------
+| API KEY
+|--------------------------------------------------------------------------
+*/
+define('GOLD_API_KEY', 'QWOIJUPFGXI8MSHKQLZW205HKQLZW');
+
+
+/*
+|--------------------------------------------------------------------------
+| REGISTER CUSTOM POST TYPE
+|--------------------------------------------------------------------------
+*/
+function pmx_register_gold_rates_cpt() {
+    register_post_type('gold_rate', array(
+        'labels' => array(
+            'name'          => 'Gold Rates',
+            'singular_name' => 'Gold Rate',
+        ),
+        'public'       => true,
+        'has_archive'  => true,
+        'menu_icon'    => 'dashicons-chart-line',
+        'supports'     => array('title', 'editor'),
+        'show_in_rest' => true,
+    ));
+}
+add_action('init', 'pmx_register_gold_rates_cpt');
+
+
+/*
+|--------------------------------------------------------------------------
+| ADD DAILY CRON SCHEDULE IF NEEDED
+|--------------------------------------------------------------------------
+*/
+function pmx_gold_rates_activate_cron() {
+    if (!wp_next_scheduled('pmx_fetch_gold_rates_daily')) {
+        wp_schedule_event(time(), 'daily', 'pmx_fetch_gold_rates_daily');
+    }
+}
+add_action('wp', 'pmx_gold_rates_activate_cron');
+
+
+/*
+|--------------------------------------------------------------------------
+| CLEAR CRON ON THEME SWITCH (OPTIONAL)
+|--------------------------------------------------------------------------
+*/
+function pmx_clear_gold_rates_cron() {
+    $timestamp = wp_next_scheduled('pmx_fetch_gold_rates_daily');
+    if ($timestamp) {
+        wp_unschedule_event($timestamp, 'pmx_fetch_gold_rates_daily');
+    }
+}
+add_action('switch_theme', 'pmx_clear_gold_rates_cron');
+
+
+/*
+|--------------------------------------------------------------------------
+| FETCH API AND SAVE TO CUSTOM POST TYPE
+|--------------------------------------------------------------------------
+*/
+function pmx_fetch_and_store_gold_rates() {
+
+    $url = add_query_arg(array(
+        'api_key'  => GOLD_API_KEY,
+        'currency' => 'PKR',
+        'unit'     => 'g',
+    ), 'https://api.metals.dev/v1/latest');
 
     $response = wp_remote_get($url, array(
+        'timeout' => 30,
         'headers' => array(
-            'Accept' => 'application/json'
-        )
+            'Accept' => 'application/json',
+        ),
     ));
 
     if (is_wp_error($response)) {
+        error_log('Gold API Error: ' . $response->get_error_message());
         return false;
     }
 
     $body = wp_remote_retrieve_body($response);
     $data = json_decode($body, true);
 
-    return $data;
+    if (empty($data) || !isset($data['status']) || $data['status'] !== 'success') {
+        error_log('Gold API Invalid Response');
+        return false;
+    }
+
+    $metal_time    = isset($data['timestamps']['metal']) ? $data['timestamps']['metal'] : current_time('mysql');
+    $currency_time = isset($data['timestamps']['currency']) ? $data['timestamps']['currency'] : current_time('mysql');
+
+    $gold      = isset($data['metals']['gold']) ? $data['metals']['gold'] : '';
+    $silver    = isset($data['metals']['silver']) ? $data['metals']['silver'] : '';
+    $platinum  = isset($data['metals']['platinum']) ? $data['metals']['platinum'] : '';
+    $palladium = isset($data['metals']['palladium']) ? $data['metals']['palladium'] : '';
+
+    $post_id = wp_insert_post(array(
+        'post_type'   => 'gold_rate',
+        'post_status' => 'publish',
+        'post_title'  => 'Gold Rate - ' . current_time('Y-m-d H:i:s'),
+        'post_content'=> wp_json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+    ));
+
+    if (is_wp_error($post_id) || !$post_id) {
+        error_log('Gold Rate Post Insert Failed');
+        return false;
+    }
+
+    update_post_meta($post_id, 'gold_price', $gold);
+    update_post_meta($post_id, 'silver_price', $silver);
+    update_post_meta($post_id, 'platinum_price', $platinum);
+    update_post_meta($post_id, 'palladium_price', $palladium);
+
+    update_post_meta($post_id, 'currency', isset($data['currency']) ? $data['currency'] : '');
+    update_post_meta($post_id, 'unit', isset($data['unit']) ? $data['unit'] : '');
+
+    update_post_meta($post_id, 'metal_timestamp', $metal_time);
+    update_post_meta($post_id, 'currency_timestamp', $currency_time);
+
+    update_post_meta($post_id, 'full_api_response', $data);
+
+    return $post_id;
 }
+add_action('pmx_fetch_gold_rates_daily', 'pmx_fetch_and_store_gold_rates');
