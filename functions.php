@@ -269,7 +269,7 @@ function pmx_gold_silver_marquee_shortcode() {
 
     $post_id = $posts[0]->ID;
 
-       $gold      = get_post_meta($post_id, 'gold_price', true);
+    $gold      = get_post_meta($post_id, 'gold_price', true);
     $silver    = get_post_meta($post_id, 'silver_price', true);
     $platinum  = get_post_meta($post_id, 'platinum_price', true);
     $palladium = get_post_meta($post_id, 'palladium_price', true);
@@ -303,3 +303,60 @@ function pmx_gold_silver_marquee_shortcode() {
 }
 
 add_shortcode('star_gold_rate', 'pmx_gold_silver_marquee_shortcode');
+
+
+
+
+function pmx_get_dynamic_metal_product_price($product) {
+    if (!$product) {
+        return false;
+    }
+
+    $product_id = $product->get_id();
+
+    $metal_type   = get_post_meta($product_id, 'metal_type', true);
+    $metal_weight = (float) get_post_meta($product_id, 'metal_weight', true);
+
+    if (empty($metal_type) || empty($metal_weight)) {
+        return false;
+    }
+
+    $rates = pmx_get_latest_metal_rates();
+
+    if (!$rates || empty($rates[$metal_type])) {
+        return false;
+    }
+
+    $rate = (float) $rates[$metal_type];
+
+    $final_price = $rate * $metal_weight;
+
+    return $final_price;
+}
+
+
+function pmx_dynamic_price_html($price, $product) {
+    $dynamic_price = pmx_get_dynamic_metal_product_price($product);
+
+    if ($dynamic_price === false) {
+        return $price;
+    }
+
+    return wc_price($dynamic_price);
+}
+add_filter('woocommerce_get_price_html', 'pmx_dynamic_price_html', 10, 2);
+
+
+function pmx_dynamic_product_price($price, $product) {
+    $dynamic_price = pmx_get_dynamic_metal_product_price($product);
+
+    if ($dynamic_price === false) {
+        return $price;
+    }
+
+    return $dynamic_price;
+}
+add_filter('woocommerce_product_get_price', 'pmx_dynamic_product_price', 10, 2);
+add_filter('woocommerce_product_get_regular_price', 'pmx_dynamic_product_price', 10, 2);
+add_filter('woocommerce_product_variation_get_price', 'pmx_dynamic_product_price', 10, 2);
+add_filter('woocommerce_product_variation_get_regular_price', 'pmx_dynamic_product_price', 10, 2);
