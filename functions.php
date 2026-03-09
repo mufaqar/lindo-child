@@ -307,56 +307,56 @@ add_shortcode('star_gold_rate', 'pmx_gold_silver_marquee_shortcode');
 
 
 
-function pmx_get_dynamic_metal_product_price($product) {
-    if (!$product) {
-        return false;
-    }
+// function pmx_get_dynamic_metal_product_price($product) {
+//     if (!$product) {
+//         return false;
+//     }
 
-    $product_id = $product->get_id();
+//     $product_id = $product->get_id();
 
-    $metal_type   = get_post_meta($product_id, 'metal_type', true);
-    $metal_weight = (float) get_post_meta($product_id, 'metal_weight', true);
+//     $metal_type   = get_post_meta($product_id, 'metal_type', true);
+//     $metal_weight = (float) get_post_meta($product_id, 'metal_weight', true);
 
-    if (empty($metal_type) || empty($metal_weight)) {
-        return false;
-    }
+//     if (empty($metal_type) || empty($metal_weight)) {
+//         return false;
+//     }
 
-    $rates = pmx_get_latest_metal_rates();
+//     $rates = pmx_get_latest_metal_rates();
 
-    if (!$rates || empty($rates[$metal_type])) {
-        return false;
-    }
+//     if (!$rates || empty($rates[$metal_type])) {
+//         return false;
+//     }
 
-    $rate = (float) $rates[$metal_type];
+//     $rate = (float) $rates[$metal_type];
 
-    $final_price = $rate * $metal_weight;
+//     $final_price = $rate * $metal_weight;
 
-    return $final_price;
-}
-
-
-function pmx_dynamic_price_html($price, $product) {
-    $dynamic_price = pmx_get_dynamic_metal_product_price($product);
-
-    if ($dynamic_price === false) {
-        return $price;
-    }
-
-    return wc_price($dynamic_price);
-}
-add_filter('woocommerce_get_price_html', 'pmx_dynamic_price_html', 10, 2);
+//     return $final_price;
+// }
 
 
-function pmx_dynamic_product_price($price, $product) {
-    $dynamic_price = pmx_get_dynamic_metal_product_price($product);
+// function pmx_dynamic_price_html($price, $product) {
+//     $dynamic_price = pmx_get_dynamic_metal_product_price($product);
 
-    if ($dynamic_price === false) {
-        return $price;
-    }
+//     if ($dynamic_price === false) {
+//         return $price;
+//     }
 
-    return $dynamic_price;
-}
-add_filter('woocommerce_product_get_price', 'pmx_dynamic_product_price', 10, 2);
-add_filter('woocommerce_product_get_regular_price', 'pmx_dynamic_product_price', 10, 2);
-add_filter('woocommerce_product_variation_get_price', 'pmx_dynamic_product_price', 10, 2);
-add_filter('woocommerce_product_variation_get_regular_price', 'pmx_dynamic_product_price', 10, 2);
+//     return wc_price($dynamic_price);
+// }
+// add_filter('woocommerce_get_price_html', 'pmx_dynamic_price_html', 10, 2);
+
+
+// function pmx_dynamic_product_price($price, $product) {
+//     $dynamic_price = pmx_get_dynamic_metal_product_price($product);
+
+//     if ($dynamic_price === false) {
+//         return $price;
+//     }
+
+//     return $dynamic_price;
+// }
+// add_filter('woocommerce_product_get_price', 'pmx_dynamic_product_price', 10, 2);
+// add_filter('woocommerce_product_get_regular_price', 'pmx_dynamic_product_price', 10, 2);
+// add_filter('woocommerce_product_variation_get_price', 'pmx_dynamic_product_price', 10, 2);
+// add_filter('woocommerce_product_variation_get_regular_price', 'pmx_dynamic_product_price', 10, 2);
