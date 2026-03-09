@@ -269,17 +269,37 @@ function pmx_gold_silver_marquee_shortcode() {
 
     $post_id = $posts[0]->ID;
 
-    $gold   = get_post_meta($post_id, 'gold_price', true);
-    $silver = get_post_meta($post_id, 'silver_price', true);
-    $unit   = get_post_meta($post_id, 'unit', true);
-    $curr   = get_post_meta($post_id, 'currency', true);
+       $gold      = get_post_meta($post_id, 'gold_price', true);
+    $silver    = get_post_meta($post_id, 'silver_price', true);
+    $platinum  = get_post_meta($post_id, 'platinum_price', true);
+    $palladium = get_post_meta($post_id, 'palladium_price', true);
+    $unit      = get_post_meta($post_id, 'unit', true);
+    $currency  = get_post_meta($post_id, 'currency', true);
+ ob_start();
+    ?>
 
-    $output  = '<marquee behavior="scroll" direction="left">';
-    $output .= 'Gold Rate: ' . esc_html($gold) . ' ' . esc_html($curr) . '/' . esc_html($unit);
-    $output .= ' &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp; ';
-    $output .= 'Silver Rate: ' . esc_html($silver) . ' ' . esc_html($curr) . '/' . esc_html($unit);
-    $output .= '</marquee>';
+    <div style="background:#111;color:#fff;padding:10px 0;font-size:16px;font-weight:600;">
+        <marquee behavior="scroll" direction="left">
 
-    return $output;
+            Gold: <?php echo esc_html($gold); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+
+            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+
+            Silver: <?php echo esc_html($silver); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+
+            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+
+            Platinum: <?php echo esc_html($platinum); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+
+            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+
+            Palladium: <?php echo esc_html($palladium); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+
+        </marquee>
+    </div>
+
+    <?php
+    return ob_get_clean();
 }
+
 add_shortcode('star_gold_rate', 'pmx_gold_silver_marquee_shortcode');
