@@ -1,0 +1,115 @@
+/*
+ Theme Name:   Start Gold Traders
+ Theme URI:    https://stargoldtraders.com
+ Description:  This is a child theme for Lindo
+ Author:       Mufaqar
+ Author URI:   #
+ Template:     lindo
+ Version:      1.0.0
+ Text Domain:  lindo-child
+*/
+
+
+.gold-marquee {
+	background: #111;
+	color: #fff;
+	overflow: hidden;
+	padding: 10px 0;
+	white-space: nowrap;
+	position: relative;
+}
+
+.gold-marquee-track {
+	display: inline-flex;
+	white-space: nowrap;
+	animation: scrollGold 35s linear infinite; /* slower speed */
+}
+
+.gold-marquee-track span {
+	padding-right: 60px; /* space between repeats */
+	font-weight: 600;
+}
+
+/* Smooth infinite loop */
+@keyframes scrollGold {
+	0% { transform: translateX(0); }
+	100% { transform: translateX(-50%); }
+}
+
+
+.verification-box {
+    max-width: 400px;
+    margin: 40px auto;
+    background: #e9ddbd;
+    padding: 40px 30px;
+    border-radius: 14px;
+    text-align: center;
+}
+
+.verification-box h2 {
+    font-size: 52px;
+    line-height: 1.1;
+    margin: 0 0 16px;
+    font-weight: 700;
+    color: #000;
+}
+
+.verification-subtitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #000;
+}
+
+#serial-verification-form input[type="text"] {
+    width: 100%;
+    height: 48px;
+    border: 1px solid #cfcfcf;
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 16px;
+    background: #fff;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+}
+
+#serial-verification-form button {
+    width: 100%;
+    height: 52px;
+    background: #ffd400;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+#serial-verification-form button:hover {
+    opacity: 0.92;
+}
+
+#serial-verification-result {
+    margin-top: 20px;
+}
+
+#serial-verification-result .success {
+    color: green;
+    font-weight: 600;
+}
+
+#serial-verification-result .error {
+    color: red;
+    font-weight: 600;
+}
+
+.certificate-link {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 16px;
+    background: #111;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+}
