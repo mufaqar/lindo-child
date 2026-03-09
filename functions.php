@@ -306,57 +306,118 @@ add_shortcode('star_gold_rate', 'pmx_gold_silver_marquee_shortcode');
 
 
 
+function pmx_get_latest_metal_rates() {
+    $posts = get_posts(array(
+        'post_type'      => 'gold_rate',
+        'post_status'    => 'publish',
+        'posts_per_page' => 1,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    ));
 
-// function pmx_get_dynamic_metal_product_price($product) {
-//     if (!$product) {
-//         return false;
-//     }
+    if (empty($posts)) {
+        return false;
+    }
 
-//     $product_id = $product->get_id();
+    $post_id = $posts[0]->ID;
 
-//     $metal_type   = get_post_meta($product_id, 'metal_type', true);
-//     $metal_weight = (float) get_post_meta($product_id, 'metal_weight', true);
-
-//     if (empty($metal_type) || empty($metal_weight)) {
-//         return false;
-//     }
-
-//     $rates = pmx_get_latest_metal_rates();
-
-//     if (!$rates || empty($rates[$metal_type])) {
-//         return false;
-//     }
-
-//     $rate = (float) $rates[$metal_type];
-
-//     $final_price = $rate * $metal_weight;
-
-//     return $final_price;
-// }
+    return array(
+        'gold'      => (float) get_post_meta($post_id, 'gold_price', true),
+        'silver'    => (float) get_post_meta($post_id, 'silver_price', true),
+        'platinum'  => (float) get_post_meta($post_id, 'platinum_price', true),
+        'palladium' => (float) get_post_meta($post_id, 'palladium_price', true),
+    );
+}
 
 
-// function pmx_dynamic_price_html($price, $product) {
-//     $dynamic_price = pmx_get_dynamic_metal_product_price($product);
+function pmx_get_dynamic_metal_product_price($product) {
+    if (!$product || !is_a($product, 'WC_Product')) {
+        return false;
+    }
 
-//     if ($dynamic_price === false) {
-//         return $price;
-//     }
+    $product_id = $product->get_id();
+    $parent_id  = $product->get_parent_id();
 
-//     return wc_price($dynamic_price);
-// }
-// add_filter('woocommerce_get_price_html', 'pmx_dynamic_price_html', 10, 2);
+    // First try current product/variation
+    $metal_type   = get_post_meta($product_id, 'metal_type', true);
+    $metal_weight = get_post_meta($product_id, 'metal_weight', true);
 
+    // If variation meta is empty, try parent product
+    if ((empty($metal_type) || empty($metal_weight)) && !empty($parent_id)) {
+        $metal_type   = get_post_meta($parent_id, 'metal_type', true);
+        $metal_weight = get_post_meta($parent_id, 'metal_weight', true);
+    }
 
-// function pmx_dynamic_product_price($price, $product) {
-//     $dynamic_price = pmx_get_dynamic_metal_product_price($product);
+    $metal_type   = strtolower(trim((string) $metal_type));
+    $metal_weight = (float) $metal_weight;
 
-//     if ($dynamic_price === false) {
-//         return $price;
-//     }
+    if (empty($metal_type) || empty($metal_weight)) {
+        return false;
+    }
 
-//     return $dynamic_price;
-// }
-// add_filter('woocommerce_product_get_price', 'pmx_dynamic_product_price', 10, 2);
-// add_filter('woocommerce_product_get_regular_price', 'pmx_dynamic_product_price', 10, 2);
-// add_filter('woocommerce_product_variation_get_price', 'pmx_dynamic_product_price', 10, 2);
-// add_filter('woocommerce_product_variation_get_regular_price', 'pmx_dynamic_product_price', 10, 2);
+    $rates = pmx_get_latest_metal_rates();
+
+    if (!$rates) {
+        return false;
+    }
+
+    if (!isset($rates[$metal_type])) {
+        return false;
+    }
+
+    $rate = (float) $rates[$metal_type];
+
+    if ($rate <= 0) {
+        return false;
+    }
+
+    $final_price = $rate * $metal_weight;
+
+    return $final_price;
+}
+
+function pmx_dynamic_product_price($price, $product) {
+    $dynamic_price = pmx_get_dynamic_metal_product_price($product);
+
+    if ($dynamic_price === false) {
+        return $price;
+    }
+
+    return $dynamic_price;
+}
+add_filter('woocommerce_product_get_price', 'pmx_dynamic_product_price', 9999, 2);
+add_filter('woocommerce_product_get_regular_price', 'pmx_dynamic_product_price', 9999, 2);
+add_filter('woocommerce_product_variation_get_price', 'pmx_dynamic_product_price', 9999, 2);
+add_filter('woocommerce_product_variation_get_regular_price', 'pmx_dynamic_product_price', 9999, 2);
+
+function pmx_dynamic_price_html($price_html, $product) {
+    $dynamic_price = pmx_get_dynamic_metal_product_price($product);
+
+    if ($dynamic_price === false) {
+        return $price_html;
+    }
+
+    return wc_price($dynamic_price);
+}
+add_filter('woocommerce_get_price_html', 'pmx_dynamic_price_html', 9999, 2);
+
+function pmx_set_cart_item_live_prices($cart) {
+    if (is_admin() && !defined('DOING_AJAX')) {
+        return;
+    }
+
+    if (did_action('woocommerce_before_calculate_totals') > 1) {
+        return;
+    }
+
+    foreach ($cart->get_cart() as $cart_item) {
+        if (!empty($cart_item['data']) && is_a($cart_item['data'], 'WC_Product')) {
+            $dynamic_price = pmx_get_dynamic_metal_product_price($cart_item['data']);
+
+            if ($dynamic_price !== false) {
+                $cart_item['data']->set_price($dynamic_price);
+            }
+        }
+    }
+}
+add_action('woocommerce_before_calculate_totals', 'pmx_set_cart_item_live_prices', 9999);
