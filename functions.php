@@ -190,7 +190,7 @@ add_action('switch_theme', 'pmx_clear_gold_rates_cron');
 function pmx_fetch_and_store_gold_rates() {
 
     $url = add_query_arg(array(
-        'api_key'  => GOLD_API_KEY,
+        'api_key'  => 'QWOIJUPFGXI8MSHKQLZW205HKQLZW',
         'currency' => 'PKR',
         'unit'     => 'g',
     ), 'https://api.metals.dev/v1/latest');
