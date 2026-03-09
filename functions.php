@@ -118,7 +118,7 @@ function child_serial_verification_search() {
 
 
 
-define('GOLD_API_KEY', 'QWOIJUPFGXI8MSHKQLZW205HKQLZW');
+//define('GOLD_API_KEY', 'QWOIJUPFGXI8MSHKQLZW205HKQLZW');
 
 
 
@@ -131,7 +131,7 @@ if (!defined('ABSPATH')) {
 | API KEY
 |--------------------------------------------------------------------------
 */
-define('GOLD_API_KEY', 'QWOIJUPFGXI8MSHKQLZW205HKQLZW');
+//define('GOLD_API_KEY', 'QWOIJUPFGXI8MSHKQLZW205HKQLZW');
 
 
 /*
@@ -251,3 +251,35 @@ function pmx_fetch_and_store_gold_rates() {
     return $post_id;
 }
 add_action('pmx_fetch_gold_rates_daily', 'pmx_fetch_and_store_gold_rates');
+
+
+
+function pmx_gold_silver_marquee_shortcode() {
+    $posts = get_posts(array(
+        'post_type'      => 'gold_rate',
+        'post_status'    => 'publish',
+        'posts_per_page' => 1,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    ));
+
+    if (empty($posts)) {
+        return 'No rates found.';
+    }
+
+    $post_id = $posts[0]->ID;
+
+    $gold   = get_post_meta($post_id, 'gold_price', true);
+    $silver = get_post_meta($post_id, 'silver_price', true);
+    $unit   = get_post_meta($post_id, 'unit', true);
+    $curr   = get_post_meta($post_id, 'currency', true);
+
+    $output  = '<marquee behavior="scroll" direction="left">';
+    $output .= 'Gold Rate: ' . esc_html($gold) . ' ' . esc_html($curr) . '/' . esc_html($unit);
+    $output .= ' &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp; ';
+    $output .= 'Silver Rate: ' . esc_html($silver) . ' ' . esc_html($curr) . '/' . esc_html($unit);
+    $output .= '</marquee>';
+
+    return $output;
+}
+add_shortcode('star_gold_rate', 'pmx_gold_silver_marquee_shortcode');
