@@ -7,7 +7,7 @@ function lindo_child_enqueue_styles() {
 add_action( 'wp_enqueue_scripts', 'lindo_child_enqueue_styles', 100 );
 
 
-include_once get_stylesheet_directory() . '/gold.php';
+//include_once get_stylesheet_directory() . '/gold.php';
 
 
 
@@ -104,7 +104,7 @@ function child_serial_verification_search() {
         wp_reset_postdata();
 
         wp_send_json_success(array(
-            'message' => 'Certificate found.',
+            'message' => 'Congratulations! Your product has been successfully verified. ✅',
             'url'     => esc_url($certificate_url),
             'title'   => get_the_title($post_id),
         ));
