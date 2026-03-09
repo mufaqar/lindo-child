@@ -38,16 +38,22 @@ add_shortcode('serial_verification', 'child_serial_verification_shortcode');
 function child_serial_verification_shortcode() {
     ob_start();
     ?>
-<div class="verification-box">
-    <h2>Verification</h2>
-    <p class="verification-subtitle">item serial number</p>
 
-    <form id="serial-verification-form">
-        <input type="text" id="serial_number" name="serial_number" placeholder="Enter serial number" required />
-        <button type="submit">VIEW CERTIFICATE</button>
-    </form>
+<div class="verification-wrapper">
+    <img src="<?php echo esc_url_raw( get_stylesheet_directory_uri().'/images/verification.jpeg'); ?>"
+        alt="Verification Icon" class="verification-icon"  />
 
-    <div id="serial-verification-result"></div>
+    <div class="verification-box">
+        <h2>Verification For Bar</h2>
+        <p class="verification-subtitle">Item Serial Number</p>
+
+        <form id="serial-verification-form">
+            <input type="text" id="serial_number" name="serial_number" placeholder="Enter serial number" required />
+            <button type="submit">VIEW CERTIFICATE</button>
+        </form>
+
+        <div id="serial-verification-result"></div>
+    </div>
 </div>
 <?php
     return ob_get_clean();
@@ -278,27 +284,27 @@ function pmx_gold_silver_marquee_shortcode() {
  ob_start();
     ?>
 
-    <div style="background:#111;color:#fff;padding:10px 0;font-size:16px;font-weight:600;">
-        <marquee behavior="scroll" direction="left">
+<div style="background:#111;color:#fff;padding:10px 0;font-size:16px;font-weight:600;">
+    <marquee behavior="scroll" direction="left">
 
-            Gold: <?php echo esc_html($gold); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+        Gold: <?php echo esc_html($gold); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
 
-            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
 
-            Silver: <?php echo esc_html($silver); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+        Silver: <?php echo esc_html($silver); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
 
-            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
 
-            Platinum: <?php echo esc_html($platinum); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+        Platinum: <?php echo esc_html($platinum); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
 
-            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+        &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
 
-            Palladium: <?php echo esc_html($palladium); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+        Palladium: <?php echo esc_html($palladium); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
 
-        </marquee>
-    </div>
+    </marquee>
+</div>
 
-    <?php
+<?php
     return ob_get_clean();
 }
 
