@@ -284,28 +284,30 @@ function pmx_gold_silver_marquee_shortcode() {
  ob_start();
     ?>
 
-<div style="background:#111;color:#fff;padding:10px 0;font-size:16px;font-weight:600;">
-    <div class="marquee">
-    <div class="marquee-content">
-        Gold: <?php echo esc_html($gold); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-        &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-        Silver: <?php echo esc_html($silver); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-        &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-        Platinum: <?php echo esc_html($platinum); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-        &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-        Palladium: <?php echo esc_html($palladium); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+<div class="marquee">
+    <div class="marquee-track">
+        <div class="marquee-group">
+            Gold: <?php echo esc_html($gold); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+            Silver: <?php echo esc_html($silver); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+            Platinum: <?php echo esc_html($platinum); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+            Palladium: <?php echo esc_html($palladium); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+        </div>
 
-        &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-
-        Gold: <?php echo esc_html($gold); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-        &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-        Silver: <?php echo esc_html($silver); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-        &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-        Platinum: <?php echo esc_html($platinum); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-        &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-        Palladium: <?php echo esc_html($palladium); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+        <div class="marquee-group">
+            Gold: <?php echo esc_html($gold); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+            Silver: <?php echo esc_html($silver); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+            Platinum: <?php echo esc_html($platinum); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+            Palladium: <?php echo esc_html($palladium); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
+            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+        </div>
     </div>
-</div>
 </div>
 
 <?php
