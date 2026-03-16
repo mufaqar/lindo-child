@@ -281,7 +281,18 @@ function pmx_gold_silver_marquee_shortcode() {
     $palladium = get_post_meta($post_id, 'palladium_price', true);
     $unit      = get_post_meta($post_id, 'unit', true);
     $currency  = get_post_meta($post_id, 'currency', true);
- ob_start();
+
+        /* Convert Gram → Tola */
+        $tola = 11.6638038;
+
+        $gold      = round($gold * $tola, 2);
+        $silver    = round($silver * $tola, 2);
+        $platinum  = round($platinum * $tola, 2);
+        $palladium = round($palladium * $tola, 2);
+        $unit = 'Tola';
+
+
+    ob_start();
     ?>
 
 <div class="marquee">
