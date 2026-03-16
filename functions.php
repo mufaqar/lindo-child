@@ -444,3 +444,60 @@ function pmx_set_cart_item_live_prices($cart) {
     }
 }
 add_action('woocommerce_before_calculate_totals', 'pmx_set_cart_item_live_prices', 9999);
+
+
+
+
+
+
+
+
+
+
+// Add custom 5-minute cron interval
+add_filter('cron_schedules', function ($schedules) {
+    $schedules['every_five_minutes'] = array(
+        'interval' => 300,
+        'display'  => __('Every 5 Minutes')
+    );
+    return $schedules;
+});
+
+// Schedule event if not already scheduled
+add_action('init', function () {
+    if (!wp_next_scheduled('pmx_fetch_gold_rates_every_5_minutes')) {
+        wp_schedule_event(time(), 'every_five_minutes', 'pmx_fetch_gold_rates_every_5_minutes');
+    }
+});
+
+// Hook your function
+add_action('pmx_fetch_gold_rates_every_5_minutes', 'pmx_fetch_and_store_gold_rates');
+
+function pmx_get_latest_gold_rate_message() {
+    $posts = get_posts(array(
+        'post_type'      => 'gold_rate',
+        'post_status'    => 'publish',
+        'posts_per_page' => 1,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    ));
+
+    if (empty($posts)) {
+        return false;
+    }
+
+    $post_id = $posts[0]->ID;
+    $tola    = 11.6638038;
+
+    $gold      = round((float) get_post_meta($post_id, 'gold_price', true) * $tola, 2);
+    $silver    = round((float) get_post_meta($post_id, 'silver_price', true) * $tola, 2);
+    $platinum  = round((float) get_post_meta($post_id, 'platinum_price', true) * $tola, 2);
+    $palladium = round((float) get_post_meta($post_id, 'palladium_price', true) * $tola, 2);
+    $currency  = get_post_meta($post_id, 'currency', true) ?: 'PKR';
+
+    return "Gold Rates Update\n"
+        . "Gold: {$gold} {$currency}/tola\n"
+        . "Silver: {$silver} {$currency}/tola\n"
+        . "Platinum: {$platinum} {$currency}/tola\n"
+        . "Palladium: {$palladium} {$currency}/tola";
+}
