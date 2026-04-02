@@ -259,74 +259,295 @@ function pmx_fetch_and_store_gold_rates() {
 add_action('pmx_fetch_gold_rates_daily', 'pmx_fetch_and_store_gold_rates');
 
 
-
 function pmx_gold_silver_marquee_shortcode() {
-    $posts = get_posts(array(
+    // Get today's latest rate
+    $today_posts = get_posts(array(
         'post_type'      => 'gold_rate',
         'post_status'    => 'publish',
         'posts_per_page' => 1,
         'orderby'        => 'date',
         'order'          => 'DESC',
+        'date_query'     => array(
+            array(
+                'year'  => date('Y'),
+                'month' => date('m'),
+                'day'   => date('d'),
+            ),
+        ),
     ));
 
-    if (empty($posts)) {
+    // Get yesterday's first rate (or last rate from yesterday)
+    $yesterday_posts = get_posts(array(
+        'post_type'      => 'gold_rate',
+        'post_status'    => 'publish',
+        'posts_per_page' => 1,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+        'date_query'     => array(
+            array(
+                'year'  => date('Y', strtotime('-1 day')),
+                'month' => date('m', strtotime('-1 day')),
+                'day'   => date('d', strtotime('-1 day')),
+            ),
+        ),
+    ));
+
+    if (empty($today_posts)) {
         return 'No rates found.';
     }
 
-    $post_id = $posts[0]->ID;
+    $today_post_id = $today_posts[0]->ID;
+    
+    // Get today's prices
+    $gold_today      = get_post_meta($today_post_id, 'gold_price', true);
+    $silver_today    = get_post_meta($today_post_id, 'silver_price', true);
+    $platinum_today  = get_post_meta($today_post_id, 'platinum_price', true);
+    $palladium_today = get_post_meta($today_post_id, 'palladium_price', true);
+    
+    // Get yesterday's prices
+    $gold_yesterday = $silver_yesterday = $platinum_yesterday = $palladium_yesterday = 0;
+    if (!empty($yesterday_posts)) {
+        $yesterday_post_id = $yesterday_posts[0]->ID;
+        $gold_yesterday      = get_post_meta($yesterday_post_id, 'gold_price', true);
+        $silver_yesterday    = get_post_meta($yesterday_post_id, 'silver_price', true);
+        $platinum_yesterday  = get_post_meta($yesterday_post_id, 'platinum_price', true);
+        $palladium_yesterday = get_post_meta($yesterday_post_id, 'palladium_price', true);
+    }
+    
+    $unit = get_post_meta($today_post_id, 'unit', true);
+    $currency = get_post_meta($today_post_id, 'currency', true);
 
-    $gold      = get_post_meta($post_id, 'gold_price', true);
-    $silver    = get_post_meta($post_id, 'silver_price', true);
-    $platinum  = get_post_meta($post_id, 'platinum_price', true);
-    $palladium = get_post_meta($post_id, 'palladium_price', true);
-    $unit      = get_post_meta($post_id, 'unit', true);
-    $currency  = get_post_meta($post_id, 'currency', true);
-
-        /* Convert Gram → Tola */
-        $tola = 11.6638038;
-
-        $gold      = round($gold * $tola, 2);
-        $silver    = round($silver * $tola, 2);
-        $platinum  = round($platinum * $tola, 2);
-        $palladium = round($palladium * $tola, 2);
-        $unit = 'Tola';
-
-
+    // Convert Gram → Tola
+    $tola = 11.6638038;
+    
+    $gold_today      = round($gold_today * $tola, 2);
+    $silver_today    = round($silver_today * $tola, 2);
+    $platinum_today  = round($platinum_today * $tola, 2);
+    $palladium_today = round($palladium_today * $tola, 2);
+    
+    $gold_yesterday      = round($gold_yesterday * $tola, 2);
+    $silver_yesterday    = round($silver_yesterday * $tola, 2);
+    $platinum_yesterday  = round($platinum_yesterday * $tola, 2);
+    $palladium_yesterday = round($palladium_yesterday * $tola, 2);
+    
+    // Calculate changes
+    $gold_change      = $gold_today - $gold_yesterday;
+    $silver_change    = $silver_today - $silver_yesterday;
+    $platinum_change  = $platinum_today - $platinum_yesterday;
+    $palladium_change = $palladium_today - $palladium_yesterday;
+    
+    $unit = 'Tola';
+    
     ob_start();
     ?>
-
-<div class="marquee">
-    <div class="marquee-track">
-        <div class="marquee-group">
-            Gold: <?php echo esc_html($gold); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-            Silver: <?php echo esc_html($silver); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-            Platinum: <?php echo esc_html($platinum); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-            Palladium: <?php echo esc_html($palladium); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-        </div>
-
-        <div class="marquee-group">
-            Gold: <?php echo esc_html($gold); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-            Silver: <?php echo esc_html($silver); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-            Platinum: <?php echo esc_html($platinum); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
-            Palladium: <?php echo esc_html($palladium); ?> <?php echo esc_html($currency); ?>/<?php echo esc_html($unit); ?>
-            &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;
+    
+    <style>
+        .metal-price {
+            display: inline-block;
+            margin: 0 15px;
+        }
+        .metal-name {
+            font-weight: bold;
+        }
+        .current-price {
+            font-size: 1.2em;
+        }
+        .price-change {
+            font-size: 0.9em;
+            margin-left: 5px;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+        .marquee-container {
+            overflow: hidden;
+            white-space: nowrap;
+            background: #f5f5f5;
+            padding: 10px 0;
+        }
+        .marquee {
+            display: inline-block;
+            animation: marquee 30s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .metal-item {
+            display: inline-block;
+            margin: 0 20px;
+        }
+    </style>
+    
+    <div class="marquee-container">
+        <div class="marquee">
+            <div class="metal-item">
+                <span class="metal-name">Gold:</span>
+                <span class="current-price"><?php echo esc_html(number_format($gold_today, 2)); ?></span>
+                <span class="price-change <?php echo $gold_change >= 0 ? 'positive' : 'negative'; ?>">
+                    (<?php echo $gold_change >= 0 ? '+' : ''; ?><?php echo esc_html(number_format($gold_change, 2)); ?>)
+                </span>
+            </div>
+            
+            <div class="metal-item">
+                <span class="metal-name">Silver:</span>
+                <span class="current-price"><?php echo esc_html(number_format($silver_today, 2)); ?></span>
+                <span class="price-change <?php echo $silver_change >= 0 ? 'positive' : 'negative'; ?>">
+                    (<?php echo $silver_change >= 0 ? '+' : ''; ?><?php echo esc_html(number_format($silver_change, 2)); ?>)
+                </span>
+            </div>
+            
+            <div class="metal-item">
+                <span class="metal-name">Platinum:</span>
+                <span class="current-price"><?php echo esc_html(number_format($platinum_today, 2)); ?></span>
+                <span class="price-change <?php echo $platinum_change >= 0 ? 'positive' : 'negative'; ?>">
+                    (<?php echo $platinum_change >= 0 ? '+' : ''; ?><?php echo esc_html(number_format($platinum_change, 2)); ?>)
+                </span>
+            </div>
+            
+            <div class="metal-item">
+                <span class="metal-name">Palladium:</span>
+                <span class="current-price"><?php echo esc_html(number_format($palladium_today, 2)); ?></span>
+                <span class="price-change <?php echo $palladium_change >= 0 ? 'positive' : 'negative'; ?>">
+                    (<?php echo $palladium_change >= 0 ? '+' : ''; ?><?php echo esc_html(number_format($palladium_change, 2)); ?>)
+                </span>
+            </div>
+            
+            <!-- Duplicate for seamless marquee -->
+            <div class="metal-item">
+                <span class="metal-name">Gold:</span>
+                <span class="current-price"><?php echo esc_html(number_format($gold_today, 2)); ?></span>
+                <span class="price-change <?php echo $gold_change >= 0 ? 'positive' : 'negative'; ?>">
+                    (<?php echo $gold_change >= 0 ? '+' : ''; ?><?php echo esc_html(number_format($gold_change, 2)); ?>)
+                </span>
+            </div>
+            
+            <div class="metal-item">
+                <span class="metal-name">Silver:</span>
+                <span class="current-price"><?php echo esc_html(number_format($silver_today, 2)); ?></span>
+                <span class="price-change <?php echo $silver_change >= 0 ? 'positive' : 'negative'; ?>">
+                    (<?php echo $silver_change >= 0 ? '+' : ''; ?><?php echo esc_html(number_format($silver_change, 2)); ?>)
+                </span>
+            </div>
+            
+            <div class="metal-item">
+                <span class="metal-name">Platinum:</span>
+                <span class="current-price"><?php echo esc_html(number_format($platinum_today, 2)); ?></span>
+                <span class="price-change <?php echo $platinum_change >= 0 ? 'positive' : 'negative'; ?>">
+                    (<?php echo $platinum_change >= 0 ? '+' : ''; ?><?php echo esc_html(number_format($platinum_change, 2)); ?>)
+                </span>
+            </div>
+            
+            <div class="metal-item">
+                <span class="metal-name">Palladium:</span>
+                <span class="current-price"><?php echo esc_html(number_format($palladium_today, 2)); ?></span>
+                <span class="price-change <?php echo $palladium_change >= 0 ? 'positive' : 'negative'; ?>">
+                    (<?php echo $palladium_change >= 0 ? '+' : ''; ?><?php echo esc_html(number_format($palladium_change, 2)); ?>)
+                </span>
+            </div>
         </div>
     </div>
-</div>
-
-<?php
+    
+    <?php
     return ob_get_clean();
 }
 
 add_shortcode('star_gold_rate', 'pmx_gold_silver_marquee_shortcode');
 
+
+
+function pmx_gold_silver_static_shortcode() {
+    // Same code as above to fetch today's and yesterday's prices...
+    
+    ob_start();
+    ?>
+    
+    <style>
+        .gold-rates-table {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            max-width: 400px;
+        }
+        .rate-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .rate-row:last-child {
+            border-bottom: none;
+        }
+        .metal-name {
+            font-weight: bold;
+            min-width: 80px;
+        }
+        .current-price {
+            font-size: 1.1em;
+            font-weight: bold;
+            min-width: 100px;
+            text-align: right;
+        }
+        .price-change {
+            min-width: 80px;
+            text-align: right;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+        .currency {
+            font-size: 0.8em;
+            color: #666;
+        }
+    </style>
+    
+    <div class="gold-rates-table">
+        <div class="rate-row">
+            <span class="metal-name">Gold:</span>
+            <span class="current-price"><?php echo esc_html(number_format($gold_today, 2)); ?></span>
+            <span class="price-change <?php echo $gold_change >= 0 ? 'positive' : 'negative'; ?>">
+                <?php echo $gold_change >= 0 ? '+' : ''; ?><?php echo esc_html(number_format($gold_change, 2)); ?>
+            </span>
+        </div>
+        
+        <div class="rate-row">
+            <span class="metal-name">Silver:</span>
+            <span class="current-price"><?php echo esc_html(number_format($silver_today, 2)); ?></span>
+            <span class="price-change <?php echo $silver_change >= 0 ? 'positive' : 'negative'; ?>">
+                <?php echo $silver_change >= 0 ? '+' : ''; ?><?php echo esc_html(number_format($silver_change, 2)); ?>
+            </span>
+        </div>
+        
+        <div class="rate-row">
+            <span class="metal-name">Platinum:</span>
+            <span class="current-price"><?php echo esc_html(number_format($platinum_today, 2)); ?></span>
+            <span class="price-change <?php echo $platinum_change >= 0 ? 'positive' : 'negative'; ?>">
+                <?php echo $platinum_change >= 0 ? '+' : ''; ?><?php echo esc_html(number_format($platinum_change, 2)); ?>
+            </span>
+        </div>
+        
+        <div class="rate-row">
+            <span class="metal-name">Palladium:</span>
+            <span class="current-price"><?php echo esc_html(number_format($palladium_today, 2)); ?></span>
+            <span class="price-change <?php echo $palladium_change >= 0 ? 'positive' : 'negative'; ?>">
+                <?php echo $palladium_change >= 0 ? '+' : ''; ?><?php echo esc_html(number_format($palladium_change, 2)); ?>
+            </span>
+        </div>
+    </div>
+    
+    <?php
+    return ob_get_clean();
+}
+
+add_shortcode('star_gold_rate_static', 'pmx_gold_silver_static_shortcode');
 
 
 function pmx_get_latest_metal_rates() {
