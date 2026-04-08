@@ -16,9 +16,11 @@ function send_gold_rate_to_whatsapp() {
 
         $api_url = "https://wasenderapi.com/api/send-message";
 
-       // $group_id = "1203630XXXXXXX@g.us"; // ✅ FIX THIS
+        // ❌ WRONG FORMAT
+        // $phone_number = "03396006280";
 
-          $phone_number = "03396006280"; // ✅ PUT NUMBER HERE
+        // ✅ FIX (Pakistan example → add country code, remove 0)
+        $phone_number = "923396006280"; 
 
         $response = wp_remote_post($api_url, array(
             'headers' => array(
@@ -31,25 +33,34 @@ function send_gold_rate_to_whatsapp() {
             ))
         ));
 
-        // Debug log
+        wp_reset_postdata();
+
+        // ✅ RETURN RESPONSE
         if (is_wp_error($response)) {
-            error_log('WhatsApp Error: ' . $response->get_error_message());
+            return $response->get_error_message();
         } else {
-            error_log('WhatsApp Response: ' . wp_remote_retrieve_body($response));
+            return array(
+                'status_code' => wp_remote_retrieve_response_code($response),
+                'body'        => wp_remote_retrieve_body($response)
+            );
         }
     }
 
-    wp_reset_postdata();
+    return "No post found";
 }
 
 add_action('init', function() {
     if (isset($_GET['send_gold_rate'])) {
-        send_gold_rate_to_whatsapp();
-        echo "Sent!";
+        $response = send_gold_rate_to_whatsapp();
+
+        echo "Gold rate sent to WhatsApp. Check logs for details.";
+
+        echo "<pre>";
+        print_r($response);
+        echo "</pre>";
         exit;
     }
 });
-
 
 add_filter('cron_schedules', function($schedules) {
     $schedules['every_30_seconds'] = array(
