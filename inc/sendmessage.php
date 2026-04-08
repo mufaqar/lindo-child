@@ -20,18 +20,19 @@ function send_gold_rate_to_whatsapp() {
         // $phone_number = "03396006280";
 
         // ✅ FIX (Pakistan example → add country code, remove 0)
-        $phone_number = "923396006280"; 
+        $phone_number = "120363427180206245@g.us"; 
 
         $response = wp_remote_post($api_url, array(
-            'headers' => array(
-                'Authorization' => 'Bearer 12125113140da8c4341556756924f64a142b2db31b1cd62a83121ac84aa55b29',
-                'Content-Type'  => 'application/json'
-            ),
-            'body' => json_encode(array(
-                'to'      => $phone_number,
-                'message' => $title
-            ))
-        ));
+        'headers' => array(
+            'Authorization' => 'Bearer 12125113140da8c4341556756924f64a142b2db31b1cd62a83121ac84aa55b29',
+            'Content-Type'  => 'application/json'
+        ),
+        'body' => json_encode(array(
+            'to'      => $phone_number,
+            'message' => $title,
+            'type'    => 'text'
+        ))
+    ));
 
         wp_reset_postdata();
 
