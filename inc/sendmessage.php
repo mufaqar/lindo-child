@@ -14,22 +14,29 @@ function send_gold_rate_to_whatsapp() {
         $query->the_post();
         $title = get_the_title();
 
-        //Authorization: Bearer 12125113140da8c4341556756924f64a142b2db31b1cd62a83121ac84aa55b29
+        $api_url = "https://wasenderapi.com/api/send-message";
 
-        // Wasender API details
-        $api_url = "https://wasenderapi.com/api/send-message"; // change if needed
-        $api_key = "12125113140da8c4341556756924f64a142b2db31b1cd62a83121ac84aa55b29";
-        $group_id = "75729";
+       // $group_id = "1203630XXXXXXX@g.us"; // ✅ FIX THIS
 
-        $body = array(
-            'api_key' => $api_key,
-            'to'      => $group_id,
-            'message' => $title
-        );
+          $phone_number = "03396006280"; // ✅ PUT NUMBER HERE
 
-        wp_remote_post($api_url, array(
-            'body' => $body
+        $response = wp_remote_post($api_url, array(
+            'headers' => array(
+                'Authorization' => 'Bearer 12125113140da8c4341556756924f64a142b2db31b1cd62a83121ac84aa55b29',
+                'Content-Type'  => 'application/json'
+            ),
+            'body' => json_encode(array(
+                'to'      => $phone_number,
+                'message' => $title
+            ))
         ));
+
+        // Debug log
+        if (is_wp_error($response)) {
+            error_log('WhatsApp Error: ' . $response->get_error_message());
+        } else {
+            error_log('WhatsApp Response: ' . wp_remote_retrieve_body($response));
+        }
     }
 
     wp_reset_postdata();
@@ -42,3 +49,20 @@ add_action('init', function() {
         exit;
     }
 });
+
+
+add_filter('cron_schedules', function($schedules) {
+    $schedules['every_30_seconds'] = array(
+        'interval' => 30,
+        'display'  => 'Every 30 Seconds'
+    );
+    return $schedules;
+});
+
+add_action('init', function() {
+    if (!wp_next_scheduled('send_gold_rate_event')) {
+        wp_schedule_event(time(), 'every_30_seconds', 'send_gold_rate_event');
+    }
+});
+
+add_action('send_gold_rate_event', 'send_gold_rate_to_whatsapp');
