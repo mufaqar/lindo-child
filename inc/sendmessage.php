@@ -20,7 +20,7 @@ function send_gold_rate_to_whatsapp() {
         // $phone_number = "03396006280";
 
         // ✅ FIX (Pakistan example → add country code, remove 0)
-        $phone_number = "120363427180206245@g.us"; 
+        $phone_number = "120363405110564479@g.us"; 
 
         $response = wp_remote_post($api_url, array(
         'headers' => array(
