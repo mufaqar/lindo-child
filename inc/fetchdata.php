@@ -88,8 +88,38 @@ function pmx_fetch_and_store_gold_rates() {
 
     return $post_id;
 }
-add_action('pmx_fetch_gold_rates_daily', 'pmx_fetch_and_store_gold_rates');
 
+
+
+// Add 5-minute interval
+add_filter('cron_schedules', function ($schedules) {
+    $schedules['every_five_minutes'] = array(
+        'interval' => 300,
+        'display'  => __('Every 5 Minutes')
+    );
+    return $schedules;
+});
+
+// Add 5-minute interval
+add_filter('cron_schedules', function ($schedules) {
+    $schedules['every_five_minutes'] = array(
+        'interval' => 300,
+        'display'  => __('Every 5 Minutes')
+    );
+    return $schedules;
+});
+
+// Schedule cron
+add_action('init', function () {
+
+    if (!wp_next_scheduled('pmx_fetch_gold_rates_every_5_minutes')) {
+
+        wp_schedule_event(time(), 'every_five_minutes', 'pmx_fetch_gold_rates_every_5_minutes');
+    }
+});
+
+// Hook event to function
+add_action('pmx_fetch_gold_rates_every_5_minutes', 'pmx_fetch_and_store_gold_rates');
 
 
 function pmx_gold_silver_marquee_shortcode() {
